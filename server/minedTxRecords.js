@@ -55,7 +55,7 @@ async function getMinedTxsFromPage(address, page, historicalPrices) {
 
             txs.push({
                 timestamp: historicalPriceData.convertEpochToDate(element["timestamp"]),
-                id: element["id"],
+                id: element["hash"],
                 amount: (50.0).toFixed(8),
                 price: atTimePrice.toFixed(8),
                 totalValue: (50.0 * atTimePrice).toFixed(8)
