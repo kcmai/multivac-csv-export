@@ -1,0 +1,95 @@
+<link href='https://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
+
+<div>
+  <img src="../../assets/mtv-logo.png" id="logo">
+  <h1 id="header">MultiVAC CSV Export</h1>
+
+  <div class="address-form">
+    <form class="example-form" #addressForm="ngForm" (ngSubmit)="buildReport(addressForm.value)" ngNativeValidate>
+      <input type="text" name="address" placeholder="Enter MultiVAC Mainnet Address" ngModel required> 
+
+      <select id="currency" name="currency" ngModel required>
+        <option value="USD">USD - US Dollar - $</option>
+        <option value="EUR">EUR - Euro - €</option>
+        <option value="JPY">JPY - Japanese Yen - ¥</option>
+        <option value="GBP">GBP - British Pound Sterling - £</option>
+        <option value="AUD">AUD - Australian Dollar - $</option>
+        <option value="CAD">CAD - Canadian Dollar - $</option>
+        <option value="CHF">CHF - Swiss Franc - CHf</option>
+        <option value="CNY">CNY - Chinese Yuan - ¥</option>
+        <option value="HKD">HKD - Hong Kong Dollar - $</option>
+        <option value="NZD">NZD - New Zealand Dollar - $</option>
+        <option value="SEK">SEK - Swedish Krona - kr</option>
+        <option value="KRW">KRW - South Korean Won - ₩</option>
+        <option value="SGD">SGD - Singapore Dollar - $</option>
+        <option value="NOK">NOK - Norwegian Krone - kr</option>
+        <option value="MXN">MXN - Mexican Peso - $</option>
+        <option value="INR">INR - Indian Rupee - ₹</option>
+        <option value="RUB">RUB - Russian Ruble - ₽</option>
+        <option value="ZAR">ZAR - South African Rand - R</option>
+        <option value="TRY">TRY - Turkish Lira - ₺</option>
+        <option value="BRL">BRL - Brazilian Real - R$</option>
+        <option value="TWD">TWD - New Taiwan Dollar - $</option>
+        <option value="DKK">DKK - Danish Krone - Kr.</option>
+        <option value="PLN">PLN - Polish Zloty - zł</option>
+        <option value="THB">THB - Thai Baht - ฿</option>
+        <option value="IDR">IDR - Indonesian Rupiah - Rp</option>
+        <option value="HUF">HUF - Hungarian Forint - Ft</option>
+        <option value="CZK">CZK - Czech Republic Koruna - Kč</option>
+        <option value="ILS">ILS - Israeli New Sheqel - ₪</option>
+        <option value="CLP">CLP - Chilean Peso - $</option>
+        <option value="PHP">PHP - Philippine Peso - ₱</option>
+        <option value="MYR">MYR - Malaysian Ringgit - RM</option>
+      </select>
+
+      <label id="addressDoesNotExist" *ngIf="showAddressDoesNotExist">
+        Address does not exist. Please check and try again.
+      </label>
+      <button id="generateReport-btn" ngSubmit="submit()" color="primary" *ngIf="!loadingReport">Generate Report</button>
+    </form>
+  </div>
+
+  <div class="loader" *ngIf="loadingReport">
+    <div class="lds-ellipsis">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+  </div>
+
+  <!-- <div class="fade-in-bottom" id="reportView"> -->
+  <div class="fade-in-bottom" id="reportView" *ngIf="showReport">
+    <h2 id="address">Address: {{this.addressProfile["address"]}}</h2>
+    <h2 id="stakeRank">Stake Rank: {{this.addressProfile["stakeRank"]}}</h2>
+
+    <div class="reportDiv fade-in-bottom">
+      <h3>Total Staked</h3>
+      <label id="totalStaked">{{this.addressProfile["totalStaked"]}}</label>
+    </div>
+
+    <div class="reportDiv fade-in-bottom">
+      <h3>Received Staking Rewards</h3>
+      <label id="recievedRewardsAmount">{{this.addressProfile["receivedRewardAmount"]}}</label>
+    </div>
+
+    <div class="reportDiv fade-in-bottom">
+      <h3>Mainnet Balance</h3>
+      <label id="mainnetBalance">{{this.addressProfile["mainnetBalance"]}}</label>
+    </div>
+
+    <div class="reportDiv fade-in-bottom">
+      <h3>Pending Withdrawal</h3>
+      <label id="pendingWithdrawal">{{this.addressProfile["pendingWithdrawal"]}}</label>
+    </div>
+
+    <button id="downloadCsv-btn" type="button" (click)=downloadCsvReport()>Download CSV</button>
+  </div>
+
+  <div>
+    <label id="disclaimer-notice">
+      This website is not affiliated with the MultiVAC project. The official site can be found at https://e.mtv.ac.
+      Please verify that the produced data results are correct.
+    </label>
+  </div>
+</div>
