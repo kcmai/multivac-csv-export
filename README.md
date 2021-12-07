@@ -34,7 +34,7 @@ Heroku has a limit of 30 seconds for a request to be fulfilled before being term
 
 ```
   let jobResponse = null
-  const jobId = await fetch("https://multivac-csv-  export.herokuapp.com/addGenerateRecordJob/<address>/<currency>")
+  const jobId = await fetch("https://multivac-csv-export.herokuapp.com/addGenerateRecordJob/<address>/<currency>")
 	
   while (!jobResponse) {
     jobResponse = await fetch("https://multivac-csv-export.herokuapp.com/checkOnJobProgress/<jobId>")
@@ -46,6 +46,6 @@ Heroku has a limit of 30 seconds for a request to be fulfilled before being term
 
 # Notes
 
-All data prices are retrieved from CoinGecko. Please verify that the prices are accurate enough to fit your needs.
+All data prices are retrieved from CoinGecko with an hourly data granularity. Please verify that the prices are accurate enough to fit your needs. 
 
 This project is not affiliated with MultiVAC. The official site can be found at https://e.mtv.ac and their explorer https://e.mtv.ac/index.html.
