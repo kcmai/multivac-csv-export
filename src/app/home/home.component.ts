@@ -38,23 +38,23 @@ export class HomeComponent implements OnInit {
     this.showAddressDoesNotExist = false;
 
     try {
-      const isValidAddress = await lastValueFrom(this.recordService.checkIfValidAddress(addressForm.address))
+      const isValidAddress = await lastValueFrom(this.recordService.checkIfValidAddress(addressForm.address));
       if (!isValidAddress) {
-        throw "Address does not exist"
+        throw "Address does not exist";
       }
 
       const socket = new WebSocket("wss://multivac-csv-export.herokuapp.com");
       socket.onopen = async () => {
         socket.send(JSON.stringify({
-          "address": addressForm.address,
+          "address": addressForm.address.toLowerCase(),
           "currency": addressForm.currency
         }));
       }
 
       socket.addEventListener("message", (event,) => {
-        this.addressProfile = JSON.parse(event.data)["addressProfile"]
-        this.txRecords = JSON.parse(event.data)["txRecords"]
-        this.currency = addressForm.currency
+        this.addressProfile = JSON.parse(event.data)["addressProfile"];
+        this.txRecords = JSON.parse(event.data)["txRecords"];
+        this.currency = addressForm.currency;
         this.loadingReport = false;
         this.showReport = true;
         socket.close();
