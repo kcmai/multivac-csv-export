@@ -2,7 +2,8 @@ const historicalPriceData = require('./historicalPriceData')
 const fetch = require('cross-fetch')
 
 exports.exportAddressTxs = async (address, currency) => {
-    const txRecords = []
+    const rewardTxs = []
+    const mainnetTxs = []
     let totalRewards = 0
 
     try {
@@ -16,20 +17,23 @@ exports.exportAddressTxs = async (address, currency) => {
 
         const txs = await Promise.all(txsPromises)
         txs.forEach((pageOfTxs) => {
-            Array.prototype.push.apply(txRecords, pageOfTxs.txRecords)
+            Array.prototype.push.apply(rewardTxs, pageOfTxs.rewardTxs)
+            Array.prototype.push.apply(mainnetTxs, pageOfTxs.mainnetTxs)
             totalRewards += pageOfTxs.rewardsForPage
         })
     } catch (error) {
         console.log(error)
     }
     return {
-        txRecords: txRecords,
+        rewardTxs: rewardTxs,
+        mainnetTxs: mainnetTxs,
         totalRewards: totalRewards
     }
 }
 
 async function getTxsFromPage(address, page, historicalPrices) {
-    const txs = []
+    const rewardTxs = []
+    const mainnetTxs = []
     let rewardTotal = 0
 
     try {
@@ -39,12 +43,11 @@ async function getTxsFromPage(address, page, historicalPrices) {
         const hashIds = JSON.parse(response)["data"]
 
         hashIds.forEach((element) => {
+            const atTimePrice = historicalPriceData.findHistoricalPrice(historicalPrices, element["timestamp"])
+            const amount = element["value"] / 1e18
+
             if (element["to"] == address && (element["from"] == blockDistributorAddress || element["from"] == milestoneRewardDistributorAddress)) {
-
-                const atTimePrice = historicalPriceData.findHistoricalPrice(historicalPrices, element["timestamp"])
-                const amount = element["value"] / 1e18
-
-                txs.push({
+                rewardTxs.push({
                     timestamp: historicalPriceData.convertEpochToDate(element["timestamp"]),
                     id: element["id"],
                     amount: amount.toFixed(8),
@@ -52,13 +55,25 @@ async function getTxsFromPage(address, page, historicalPrices) {
                     totalValue: (amount * atTimePrice).toFixed(8)
                 })
                 rewardTotal += amount
+            } else {
+                mainnetTxs.push({
+                    timestamp: historicalPriceData.convertEpochToDate(element["timestamp"]),
+                    id: element["id"],
+                    from: element["from"],
+                    to: element["to"],
+                    direction: element["from"] == address ? "OUT" : "IN",
+                    amount: amount.toFixed(8),
+                    price: atTimePrice.toFixed(8),
+                    totalValue: (amount * atTimePrice).toFixed(8)
+                })
             }
         })
     } catch (error) {
         console.log(`Error retrieving transactions from: address: ${address}, page: ${page} error: ${error}`)
     }
     return {
-        txRecords: txs,
+        rewardTxs: rewardTxs,
+        mainnetTxs: mainnetTxs,
         rewardsForPage: rewardTotal
     }
 }

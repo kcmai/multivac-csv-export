@@ -26,11 +26,12 @@ function start() {
       let addressProfileResponse = await addressProfile.getAddressProfile(job.data.address)
 
       addressProfileResponse["receivedRewardAmount"] = parseFloat((addressTxResponse.totalRewards + minedTxsResponse.totalRewards).toFixed(2)).toLocaleString()
-      Array.prototype.push.apply(addressTxResponse.txRecords, minedTxsResponse.minedTxRecords)
+      Array.prototype.push.apply(addressTxResponse.rewardTxs, minedTxsResponse.minedTxRecords)
       
       return {
         "addressProfile": addressProfileResponse,
-        "txRecords": addressTxResponse.txRecords
+        "rewardTxs": addressTxResponse.rewardTxs,
+        "mainnetTxs": addressTxResponse.mainnetTxs
       }
     } catch (error) {
       console.log(`Error generating records for: ${req.params.address}`)

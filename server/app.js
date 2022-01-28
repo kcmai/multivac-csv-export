@@ -50,12 +50,12 @@ wss.on("connection", async (ws) => {
 app.get("/checkIfValidAddress/:address", async (req, res) => {
   try {
     const addressProfileResponse = await addressProfile.getAddressProfileResponse(req.params.address)
-    const stakeRank = JSON.parse(addressProfileResponse)["stake"]["rank"]
+    const id = JSON.parse(addressProfileResponse)["id"]
 
-    if (stakeRank == 0) {
+    if (!id) {
       throw `Address: ${req.params.address} does not exist`
     }
-    res.send(JSON.stringify(stakeRank))
+    res.send(JSON.stringify(id))
   } catch (error) {
     res.send(null)
   }

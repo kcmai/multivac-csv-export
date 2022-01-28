@@ -9,7 +9,8 @@ import { lastValueFrom } from "rxjs";
   styleUrls: ["./home.component.scss"]
 })
 export class HomeComponent implements OnInit {
-  txRecords: any = [];
+  rewardTxs: any = [];
+  mainnetTxs: any = [];
   currency: string = "USD";
   loadingReport: boolean = false;
   showReport: boolean = false;
@@ -53,7 +54,8 @@ export class HomeComponent implements OnInit {
 
       socket.addEventListener("message", (event,) => {
         this.addressProfile = JSON.parse(event.data)["addressProfile"];
-        this.txRecords = JSON.parse(event.data)["txRecords"];
+        this.rewardTxs = JSON.parse(event.data)["rewardTxs"];
+        this.mainnetTxs = JSON.parse(event.data)["mainnetTxs"]
         this.currency = addressForm.currency;
         this.loadingReport = false;
         this.showReport = true;
@@ -65,15 +67,27 @@ export class HomeComponent implements OnInit {
     }
   }
 
-  downloadCsvReport() {
+  downloadRewardTxsCsvReport() {
     const options = {
       showLabels: true,
       headers: ["Timestamp(UTC)", "Id", "Amount(MTV)", `Price(${this.currency})`, `Total Value(${this.currency})`],
     };
 
-    let downloadCsv = document.getElementById("downloadCsv-btn") as HTMLButtonElement;
+    let downloadCsv = document.getElementById("downloadRewardTxsCsv-btn") as HTMLButtonElement;
     downloadCsv.disabled = true;
     setTimeout(() => { downloadCsv.disabled = false; }, 2000);
-    new AngularCsv(this.txRecords, "txRecords", options);
+    new AngularCsv(this.rewardTxs, "RewardTxs", options);
+  }
+
+  downloadMainnetTxsCsvReport() {
+    const options = {
+      showLabels: true,
+      headers: ["Timestamp(UTC)", "Id", "From", "To", "Direction", "Amount(MTV)", `Price(${this.currency})`, `Total Value(${this.currency})`],
+    };
+
+    let downloadCsv = document.getElementById("downloadMainnetTxsCsv-btn") as HTMLButtonElement;
+    downloadCsv.disabled = true;
+    setTimeout(() => { downloadCsv.disabled = false; }, 2000);
+    new AngularCsv(this.mainnetTxs, "MainnetTxs", options);
   }
 }

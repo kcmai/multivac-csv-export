@@ -10,6 +10,13 @@
   height: $height;
 }
 
+#homeBody {
+  background-image: linear-gradient(to top, #1b1f21, black);
+  overflow: hidden visible;
+  min-width: 100vw;
+  min-height: 100vh;
+}
+
 #logo {
   @include size(39px, 36px);
   position: absolute;
@@ -21,7 +28,7 @@
 #header {
   @include lato-font;
   color: rgb(255, 255, 255);
-  margin-left: 50px;
+  margin-left: 62px;
   margin-bottom: 40px;
   float: inline-end;
   text-align: left;
@@ -79,24 +86,24 @@
   opacity: 0.8;
 }
 
-#downloadCsv-btn {
+#downloadRewardTxsCsv-btn, #downloadMainnetTxsCsv-btn {
   @include lato-font;
-  width: 15%;
-  min-width: 150px;
+  height: 80%;
+  width: 300px;
+  font-size: 18px;
   background-color: rgb(33, 145, 153);
   color: white;
   text-align: center;
-  font-size: large;
-  display: block;
-  margin: auto auto 20px auto;
-  padding: 5px;
+  margin: 0.5% 2% 2% 2%;
+  padding: 10px;
   opacity: 0.8;
   border: 0.5px solid black;
   border-radius: 20px;
 }
 
 #generateReport-btn:hover,
-#downloadCsv-btn:hover {
+#downloadRewardTxsCsv-btn:hover,
+#downloadMainnetTxsCsv-btn:hover {
   opacity: 1;
 }
 

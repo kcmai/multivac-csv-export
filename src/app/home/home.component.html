@@ -1,6 +1,6 @@
 <link href='https://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
 
-<div>
+<div id="homeBody">
   <img src="../../assets/mtv-logo.png" id="logo">
   <h1 id="header">MultiVAC CSV Export</h1>
 
@@ -57,7 +57,7 @@
       <div></div>
     </div>
   </div>
-
+  
   <div class="fade-in-bottom" id="reportView" *ngIf="showReport">
     <h2 id="address">Address: {{this.addressProfile["address"]}}</h2>
     <h2 id="stakeRank">Stake Rank: {{this.addressProfile["stakeRank"]}}</h2>
@@ -82,7 +82,8 @@
       <label id="pendingWithdrawal">{{this.addressProfile["pendingWithdrawal"]}}</label>
     </div>
 
-    <button id="downloadCsv-btn" type="button" (click)=downloadCsvReport()>Download CSV</button>
+    <button id="downloadRewardTxsCsv-btn" type="button" (click)=downloadRewardTxsCsvReport()>Download Reward Transactions</button>
+    <button id="downloadMainnetTxsCsv-btn" type="button" (click)=downloadMainnetTxsCsvReport()>Download Mainnet Transactions</button>
   </div>
 
   <div>
