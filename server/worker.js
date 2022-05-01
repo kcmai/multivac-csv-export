@@ -1,8 +1,8 @@
 const throng = require("throng")
 const queue = require("bull")
-const minedTxRecords = require("./minedTxRecords")
-const addressTxRecords = require("./addressTxRecords")
-const addressProfile = require("./addressProfile")
+const minedTxRecordsUtil = require("./util/minedTxRecordsUtil")
+const addressTxRecordsUtil = require("./util/addressTxRecordsUtil")
+const fetchUtil = require('./util/fetchUtil')
 
 const REDIS_URL = process.env.REDIS_URL || "redis://127.0.0.1:6379"
 
@@ -21,13 +21,13 @@ function start() {
 
   generateRecordsQueue.process(maxJobsPerWorker, async (job) => {
     try {
-      const addressTxResponse = await addressTxRecords.exportAddressTxs(job.data.address, job.data.currency)
-      const minedTxsResponse = await minedTxRecords.exportMinedTxs(job.data.address, job.data.currency)
-      let addressProfileResponse = await addressProfile.getAddressProfile(job.data.address)
+      const addressTxResponse = await addressTxRecordsUtil.exportAddressTxs(job.data.address, job.data.currency)
+      const minedTxsResponse = await minedTxRecordsUtil.exportMinedTxs(job.data.address, job.data.currency)
+      let addressProfileResponse = await fetchUtil.getAddressProfile(job.data.address)
 
       addressProfileResponse["receivedRewardAmount"] = parseFloat((addressTxResponse.totalRewards + minedTxsResponse.totalRewards).toFixed(2)).toLocaleString()
       Array.prototype.push.apply(addressTxResponse.rewardTxs, minedTxsResponse.minedTxRecords)
-      
+
       return {
         "addressProfile": addressProfileResponse,
         "rewardTxs": addressTxResponse.rewardTxs,

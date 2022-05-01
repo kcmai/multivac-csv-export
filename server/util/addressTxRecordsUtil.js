@@ -1,5 +1,5 @@
-const historicalPriceData = require('./historicalPriceData')
-const fetch = require('cross-fetch')
+const fetchUtil = require('./fetchUtil')
+const historicalPriceData = require('./historicalPriceDataUtil')
 
 exports.exportAddressTxs = async (address, currency) => {
     const rewardTxs = []
@@ -12,7 +12,7 @@ exports.exportAddressTxs = async (address, currency) => {
 
         let txsPromises = []
         for (let page = 1; page <= maxPages; page++) {
-            txsPromises.push(getTxsFromPage(address, page, historicalPrices))
+            txsPromises.push(getTxsFromPage(address, page, historicalPrices, currency))
         }
 
         const txs = await Promise.all(txsPromises)
@@ -31,7 +31,7 @@ exports.exportAddressTxs = async (address, currency) => {
     }
 }
 
-async function getTxsFromPage(address, page, historicalPrices) {
+async function getTxsFromPage(address, page, historicalPrices, currency) {
     const rewardTxs = []
     const mainnetTxs = []
     let rewardTotal = 0
@@ -39,32 +39,44 @@ async function getTxsFromPage(address, page, historicalPrices) {
     try {
         const milestoneRewardDistributorAddress = "0x0000990fb91744c8ecdbf24ab392153a13cae040"
         const blockDistributorAddress = "0x00000df3e3e1f1b1212b8bdb8896df4442f13a4c"
-        const response = await fetchTxRecordsResponse(address, page)
-        const hashIds = JSON.parse(response)["data"]
+        const addressTxsResponse = await fetchUtil.fetchTxRecordsResponse(address, page)
+        const addressTxsHashIds = JSON.parse(addressTxsResponse)["data"]
 
-        hashIds.forEach((element) => {
+        addressTxsHashIds.forEach((element) => {
             const atTimePrice = historicalPriceData.findHistoricalPrice(historicalPrices, element["timestamp"])
             const amount = element["value"] / 1e18
+            const emptyCsvColumn = ""
 
             if (element["to"] == address && (element["from"] == blockDistributorAddress || element["from"] == milestoneRewardDistributorAddress)) {
                 rewardTxs.push({
                     timestamp: historicalPriceData.convertEpochToDate(element["timestamp"]),
-                    id: element["id"],
-                    amount: amount.toFixed(8),
-                    price: atTimePrice.toFixed(8),
-                    totalValue: (amount * atTimePrice).toFixed(8)
+                    sentAmount: emptyCsvColumn,
+                    sentCurrency: emptyCsvColumn,
+                    receivedAmount: amount.toFixed(8),
+                    receivedCurrency: "MTV",
+                    feeAmount: emptyCsvColumn,
+                    feeCurrency: emptyCsvColumn,
+                    netWorthAmount: (amount * atTimePrice).toFixed(8),
+                    netWorthCurrency: currency,
+                    label: emptyCsvColumn,
+                    description: `From: ${element["from"]} To: ${element["to"]}`,
+                    txHash: element["hash"]
                 })
                 rewardTotal += amount
             } else {
                 mainnetTxs.push({
                     timestamp: historicalPriceData.convertEpochToDate(element["timestamp"]),
-                    id: element["id"],
-                    from: element["from"],
-                    to: element["to"],
-                    direction: element["from"] == address ? "OUT" : "IN",
-                    amount: amount.toFixed(8),
-                    price: atTimePrice.toFixed(8),
-                    totalValue: (amount * atTimePrice).toFixed(8)
+                    sentAmount: element["from"] == address ? amount.toFixed(8) : emptyCsvColumn,
+                    sentCurrency: element["from"] == address ? "MTV" : emptyCsvColumn,
+                    receivedAmount: element["from"] != address ? amount.toFixed(8) : emptyCsvColumn,
+                    receivedCurrency: element["from"] != address ? "MTV" : emptyCsvColumn,
+                    feeAmount: emptyCsvColumn,
+                    feeCurrency: "MTV",
+                    netWorthAmount: (amount * atTimePrice).toFixed(8),
+                    netWorthCurrency: currency,
+                    label: emptyCsvColumn,
+                    description: element["status"] == 1 ? `SUCCESS - From: ${element["from"]} To: ${element["to"]}` : `FAILED - From: ${element["from"]} To: ${element["to"]}`,
+                    txHash: element["hash"]
                 })
             }
         })
@@ -82,38 +94,11 @@ async function getTxsPageCount(address) {
     let maxPages = 0
 
     try {
-        const response = await fetchTxRecordsResponse(address, 1)
+        const response = await fetchUtil.fetchTxRecordsResponse(address, 1)
         maxPages = JSON.parse(response)["pages"]
-        if (maxPages == 0) console.log("Address provided does not have any transaction records")
+        if (maxPages == 0) console.log(`Address provided does not have any transaction records`)
     } catch (error) {
         console.log(`Error retrieving transactions max page count for address: ${address}, error:${error}`)
     }
     return maxPages
-}
-
-async function fetchTxRecordsResponse(address, pageNum) {
-    let response = null
-
-    try {
-        response = await fetch("https://e.mtv.ac/transaction/list", {
-            "headers": {
-                "accept": "application/json, text/plain, */*",
-                "accept-language": "en-US,en;q=0.9",
-                "content-type": "application/x-www-form-urlencoded",
-                "sec-ch-ua": "\"Microsoft Edge\";v=\"95\", \"Chromium\";v=\"95\", \";Not A Brand\";v=\"99\"",
-                "sec-ch-ua-mobile": "?0",
-                "sec-ch-ua-platform": "\"Windows\"",
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "same-origin",
-                "Referer": `https://e.mtv.ac/account.html?address=${address}`,
-                "Referrer-Policy": "strict-origin-when-cross-origin"
-            },
-            "body": `pageNum=${pageNum}&pageSize=256&number=&address=${address}`,
-            "method": "POST"
-        })
-    } catch (error) {
-        console.log(`Error fetching mined records from MultiVAC endpoint: ${error}`)
-    }
-    return await response.text()
 }

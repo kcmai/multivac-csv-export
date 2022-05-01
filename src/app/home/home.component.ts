@@ -40,6 +40,7 @@ export class HomeComponent implements OnInit {
 
     try {
       const isValidAddress = await lastValueFrom(this.recordService.checkIfValidAddress(addressForm.address));
+
       if (!isValidAddress) {
         throw "Address does not exist";
       }
@@ -70,7 +71,8 @@ export class HomeComponent implements OnInit {
   downloadRewardTxsCsvReport() {
     const options = {
       showLabels: true,
-      headers: ["Timestamp(UTC)", "Id", "Amount(MTV)", `Price(${this.currency})`, `Total Value(${this.currency})`],
+      headers: ["Date", "Sent Amount", "Sent Currency", "Received Amount", "Received Currency", "Fee Amount",
+        "Fee Currency", "Net Worth Amount", "Net Worth Currency", "Label", "Description", "TxHash"]
     };
 
     let downloadCsv = document.getElementById("downloadRewardTxsCsv-btn") as HTMLButtonElement;
@@ -82,7 +84,8 @@ export class HomeComponent implements OnInit {
   downloadMainnetTxsCsvReport() {
     const options = {
       showLabels: true,
-      headers: ["Timestamp(UTC)", "Id", "From", "To", "Direction", "Amount(MTV)", `Price(${this.currency})`, `Total Value(${this.currency})`],
+      headers: ["Date", "Sent Amount", "Sent Currency", "Received Amount", "Received Currency", "Fee Amount",
+        "Fee Currency", "Net Worth Amount", "Net Worth Currency", "Label", "Description", "TxHash"]
     };
 
     let downloadCsv = document.getElementById("downloadMainnetTxsCsv-btn") as HTMLButtonElement;

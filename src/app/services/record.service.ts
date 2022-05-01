@@ -6,7 +6,7 @@ import { HttpClient } from "@angular/common/http";
 })
 export class RecordService {
   uri:string = "https://multivac-csv-export.herokuapp.com";
-
+  
   constructor(private httpClient: HttpClient) { }
 
   checkIfValidAddress(address: string) {
