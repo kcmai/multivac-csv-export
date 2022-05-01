@@ -1,8 +1,9 @@
-const fetch = require('cross-fetch')
-const historicalPriceData = require('./historicalPriceData')
+const fetchUtil = require('./fetchUtil')
+const historicalPriceData = require('./historicalPriceDataUtil')
 
 exports.exportMinedTxs = async (address, currency) => {
     const minedTxRecords = []
+    const rewardsPerBlock = 50.0
 
     try {
         const maxPages = await getMinedPageCount(address)
@@ -17,11 +18,11 @@ exports.exportMinedTxs = async (address, currency) => {
             /* Gather remaining mined transactions from remaining pages left in batch */
             if (currPage + batchSize > maxPages) {
                 for (let page = currPage + 1; page <= maxPages; page++) {
-                    minedTxPromises.push(getMinedTxsFromPage(address, page, historicalPrices))
+                    minedTxPromises.push(getMinedTxsFromPage(address, page, historicalPrices, currency))
                 }
             } else {
                 for (let page = 1; page <= batchSize; page++) {
-                    minedTxPromises.push(getMinedTxsFromPage(address, page + currPage, historicalPrices))
+                    minedTxPromises.push(getMinedTxsFromPage(address, page + currPage, historicalPrices, currency))
                 }
             }
 
@@ -38,27 +39,36 @@ exports.exportMinedTxs = async (address, currency) => {
     }
     return {
         minedTxRecords: minedTxRecords,
-        totalRewards: minedTxRecords.length * 50.0
+        totalRewards: minedTxRecords.length * rewardsPerBlock
     }
 }
 
-async function getMinedTxsFromPage(address, page, historicalPrices) {
+async function getMinedTxsFromPage(address, page, historicalPrices, currency) {
     const txs = []
+    const rewardsPerBlock = 50.0
     let response = null
 
     try {
-        response = await fetchMinedRecordsResponse(address, page)
+        response = await fetchUtil.fetchMinedRecordsResponse(address, page)
         const hashIds = JSON.parse(response)["data"]
 
         hashIds.forEach((element) => {
             const atTimePrice = historicalPriceData.findHistoricalPrice(historicalPrices, element["timestamp"])
+            const emptyCsvColumn = ""
 
             txs.push({
                 timestamp: historicalPriceData.convertEpochToDate(element["timestamp"]),
-                id: element["hash"],
-                amount: (50.0).toFixed(8),
-                price: atTimePrice.toFixed(8),
-                totalValue: (50.0 * atTimePrice).toFixed(8)
+                sentAmount: emptyCsvColumn,
+                sentCurrency: emptyCsvColumn,
+                receivedAmount: (rewardsPerBlock).toFixed(8),
+                receivedCurrency: "MTV",
+                feeAmount: emptyCsvColumn,
+                feeCurrency: emptyCsvColumn,
+                netWorthAmount: (rewardsPerBlock * atTimePrice).toFixed(8),
+                netWorthCurrency: currency,
+                label: emptyCsvColumn,
+                description: `From: ${address} To: ${address}`,
+                txHash: element["hash"]
             })
         })
     } catch (error) {
@@ -71,38 +81,11 @@ async function getMinedPageCount(address) {
     let maxPages = 0
 
     try {
-        const response = await fetchMinedRecordsResponse(address, 1)
+        const response = await fetchUtil.fetchMinedRecordsResponse(address, 1)
         maxPages = JSON.parse(response)["pages"]
-        if (maxPages == 0) console.log("Address provided does not have any mined transaction records")
+        if (maxPages == 0) console.log(`Address provided does not have any mined transaction records`)
     } catch (error) {
         console.log(`Error retrieving mined transactions max page count for address: ${address}`)
     }
     return maxPages
-}
-
-async function fetchMinedRecordsResponse(address, pageNum) {
-    let response = null
-
-    try {
-        response = await fetch("https://e.mtv.ac/block/listByMiner", {
-            "headers": {
-                "accept": "application/json, text/plain, */*",
-                "accept-language": "en-US,en;q=0.9",
-                "content-type": "application/x-www-form-urlencoded",
-                "sec-ch-ua": "\"Microsoft Edge\";v=\"95\", \"Chromium\";v=\"95\", \";Not A Brand\";v=\"99\"",
-                "sec-ch-ua-mobile": "?0",
-                "sec-ch-ua-platform": "\"Windows\"",
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "same-origin",
-                "Referer": `https://e.mtv.ac/account.html?address=${address}`,
-                "Referrer-Policy": "strict-origin-when-cross-origin"
-            },
-            "body": `address=${address}&pageNum=${pageNum}&pageSize=256`,
-            "method": "POST"
-        })
-    } catch (error) {
-        console.log(`Error fetching mined records from MultiVAC endpoint`)
-    }
-    return await response.text()
 }

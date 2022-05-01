@@ -6,7 +6,7 @@
 
   <div class="address-form">
     <form class="example-form" #addressForm="ngForm" (ngSubmit)="buildReport(addressForm.value)" ngNativeValidate>
-      <input type="text" name="address" placeholder="Enter MultiVAC Mainnet Address" ngModel required> 
+      <input type="text" name="address" placeholder="Enter MultiVAC Mainnet Address" ngModel required>
 
       <select id="currency" name="currency" ngModel required>
         <option value="USD">USD - US Dollar - $</option>
@@ -45,7 +45,8 @@
       <label id="addressDoesNotExist" *ngIf="showAddressDoesNotExist">
         Address does not exist. Please check and try again.
       </label>
-      <button id="generateReport-btn" ngSubmit="submit()" color="primary" *ngIf="!loadingReport">Generate Report</button>
+      <button id="generateReport-btn" ngSubmit="submit()" color="primary" *ngIf="!loadingReport">Generate
+        Report</button>
     </form>
   </div>
 
@@ -57,7 +58,7 @@
       <div></div>
     </div>
   </div>
-  
+
   <div class="fade-in-bottom" id="reportView" *ngIf="showReport">
     <h2 id="address">Address: {{this.addressProfile["address"]}}</h2>
     <h2 id="stakeRank">Stake Rank: {{this.addressProfile["stakeRank"]}}</h2>
@@ -82,13 +83,16 @@
       <label id="pendingWithdrawal">{{this.addressProfile["pendingWithdrawal"]}}</label>
     </div>
 
-    <button id="downloadRewardTxsCsv-btn" type="button" (click)=downloadRewardTxsCsvReport()>Download Reward Transactions</button>
-    <button id="downloadMainnetTxsCsv-btn" type="button" (click)=downloadMainnetTxsCsvReport()>Download Mainnet Transactions</button>
+    <button id="downloadRewardTxsCsv-btn" type="button" (click)=downloadRewardTxsCsvReport()>Download Reward
+      Transactions</button>
+    <button id="downloadMainnetTxsCsv-btn" type="button" (click)=downloadMainnetTxsCsvReport()>Download Mainnet
+      Transactions</button>
   </div>
 
   <div>
     <label id="disclaimer-notice">
-      This website is not affiliated with the MultiVAC project. The official site can be found at https://e.mtv.ac.
+      All generated csv reports will be compatible for import into Koinly.
+      <br>This website is not affiliated with the MultiVAC project. The official site can be found at https://e.mtv.ac.
       Please verify that the produced data results are correct.
     </label>
   </div>

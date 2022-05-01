@@ -4,7 +4,7 @@ const server = require("http").createServer(app)
 const cors = require("cors")
 const queue = require("bull")
 const webSocket = require("ws")
-const addressProfile = require("./addressProfile")
+const fetchUtil = require('./util/fetchUtil')
 
 const PORT = process.env.PORT || 3000
 const REDIS_URL = process.env.REDIS_URL || "redis://127.0.0.1:6379"
@@ -49,12 +49,13 @@ wss.on("connection", async (ws) => {
 
 app.get("/checkIfValidAddress/:address", async (req, res) => {
   try {
-    const addressProfileResponse = await addressProfile.getAddressProfileResponse(req.params.address)
+    const addressProfileResponse = await fetchUtil.getAddressProfileResponse(req.params.address)
     const id = JSON.parse(addressProfileResponse)["id"]
 
     if (!id) {
       throw `Address: ${req.params.address} does not exist`
     }
+
     res.send(JSON.stringify(id))
   } catch (error) {
     res.send(null)
