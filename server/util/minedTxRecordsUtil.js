@@ -2,51 +2,36 @@ const fetchUtil = require('./fetchUtil')
 const historicalPriceData = require('./historicalPriceDataUtil')
 
 exports.exportMinedTxs = async (address, currency) => {
-    const minedTxRecords = []
-    const rewardsPerBlock = 50.0
+    const rewardTxs = []
+    let totalRewards = 0
 
     try {
         const maxPages = await getMinedPageCount(address)
         const historicalPrices = await historicalPriceData.getHistoricalPrices(currency)
-        const batchSize = 50
-        let currPage = 0
 
-        /* Creating promises through batches to be under request limit from server */
-        while (currPage <= maxPages) {
-            let minedTxPromises = []
-
-            /* Gather remaining mined transactions from remaining pages left in batch */
-            if (currPage + batchSize > maxPages) {
-                for (let page = currPage + 1; page <= maxPages; page++) {
-                    minedTxPromises.push(getMinedTxsFromPage(address, page, historicalPrices, currency))
-                }
-            } else {
-                for (let page = 1; page <= batchSize; page++) {
-                    minedTxPromises.push(getMinedTxsFromPage(address, page + currPage, historicalPrices, currency))
-                }
-            }
-
-            const minedTxs = await Promise.all(minedTxPromises)
-            minedTxs.forEach((pageOfTxs) => {
-                Array.prototype.push.apply(minedTxRecords, pageOfTxs)
-            })
-            currPage += batchSize
-
-            if (currPage > maxPages) { break }
+        let txsPromises = []
+        for (let page = 1; page <= maxPages; page++) {
+            txsPromises.push(getMinedTxsFromPage(address, page, historicalPrices, currency))
         }
+
+        const txs = await Promise.all(txsPromises)
+        txs.forEach((pageOfTxs) => {
+            Array.prototype.push.apply(rewardTxs, pageOfTxs.rewardTxs)
+            totalRewards += pageOfTxs.rewardsForPage
+        })
     } catch (error) {
         console.log(error)
     }
     return {
-        minedTxRecords: minedTxRecords,
-        totalRewards: minedTxRecords.length * rewardsPerBlock
+        minedTxRecords: rewardTxs,
+        totalRewards: totalRewards
     }
 }
 
 async function getMinedTxsFromPage(address, page, historicalPrices, currency) {
-    const txs = []
-    const rewardsPerBlock = 50.0
+    const rewardTxs = []
     let response = null
+    let rewardTotal = 0
 
     try {
         response = await fetchUtil.fetchMinedRecordsResponse(address, page)
@@ -55,8 +40,10 @@ async function getMinedTxsFromPage(address, page, historicalPrices, currency) {
         hashIds.forEach((element) => {
             const atTimePrice = historicalPriceData.findHistoricalPrice(historicalPrices, element["timestamp"])
             const emptyCsvColumn = ""
+            // Halvening of rewards from block 10 million onward
+            const rewardsPerBlock = element["id"] >= 10000000 ? 25 : 50
 
-            txs.push({
+            rewardTxs.push({
                 timestamp: historicalPriceData.convertEpochToDate(element["timestamp"]),
                 sentAmount: emptyCsvColumn,
                 sentCurrency: emptyCsvColumn,
@@ -70,11 +57,15 @@ async function getMinedTxsFromPage(address, page, historicalPrices, currency) {
                 description: `From: ${address} To: ${address}`,
                 txHash: element["hash"]
             })
+            rewardTotal += rewardsPerBlock
         })
     } catch (error) {
         console.log(`Error retrieving mined transactions from: address: ${address}, page: ${page} error: ${error}`)
     }
-    return txs
+    return {
+        rewardTxs: rewardTxs,
+        rewardsForPage: rewardTotal
+    }
 }
 
 async function getMinedPageCount(address) {
